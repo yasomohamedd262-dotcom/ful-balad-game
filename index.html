@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فول البلد - لعبة المطعم</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    user-select:none;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Tahoma,sans-serif;
+    background:#17120e;
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+
+.game{
+    width:100%;
+    min-height:1250px;
+    position:relative;
+    overflow:hidden;
+    background:
+    repeating-linear-gradient(
+        0deg,
+        #b88958 0px,
+        #b88958 48px,
+        #a9794d 49px,
+        #a9794d 52px
+    );
+}
+
+/* الحائط */
+.wall{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:330px;
+    background:
+    repeating-linear-gradient(
+        90deg,
+        #eee9df 0px,
+        #eee9df 75px,
+        #d5cec2 76px,
+        #d5cec2 79px
+    );
+    border-bottom:12px solid #513b2b;
+}
+
+/* اللافتة */
+.sign{
+    position:absolute;
+    top:25px;
+    left:50%;
+    transform:translateX(-50%);
+    background:linear-gradient(#bd321e,#74180e);
+    color:white;
+    padding:15px 55px;
+    border-radius:10px;
+    border:5px solid #3c180e;
+    box-shadow:0 8px 20px #0009,inset 0 2px 3px #fff4;
+    font-size:30px;
+    font-weight:bold;
+    z-index:20;
+}
+
+/* معلومات اللعبة */
+.hud{
+    position:absolute;
+    top:25px;
+    right:20px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    max-width:43%;
+    z-index:30;
+}
+
+.hudBox{
+    background:#111e;
+    color:white;
+    padding:11px 17px;
+    border-radius:10px;
+    border:1px solid #ffffff30;
+    box-shadow:0 5px 15px #0007;
+    font-weight:bold;
+}
+
+#timer{
+    color:#ffd23c;
+}
+
+/* المطبخ */
+.kitchenWindow{
+    position:absolute;
+    top:390px;
+    right:40px;
+    width:400px;
+    height:330px;
+    background:#292929;
+    border:12px solid #39291f;
+    box-shadow:0 10px 25px #0009;
+    z-index:5;
+}
+
+.kitchenInside{
+    width:100%;
+    height:100%;
+    position:relative;
+    background:linear-gradient(#555,#292929);
+}
+
+.hood{
+    position:absolute;
+    top:25px;
+    left:95px;
+    width:210px;
+    height:35px;
+    background:linear-gradient(#d8d8d8,#777);
+    border-radius:7px;
+    box-shadow:0 8px 15px #0009;
+}
+
+/* حلة الفول */
+.fulPot{
+    position:absolute;
+    bottom:35px;
+    left:55px;
+    width:280px;
+    height:150px;
+    background:linear-gradient(#333,#080808);
+    border-radius:20px 20px 50px 50px;
+    border:8px solid #777;
+    box-shadow:inset 0 10px 15px #fff2,0 10px 18px #000;
+}
+
+.fulPot:before{
+    content:"";
+    position:absolute;
+    left:8%;
+    top:-27px;
+    width:84%;
+    height:65px;
+    border-radius:50%;
+    background:
+    radial-gradient(circle at 20% 40%,#7d3b1b 0 8%,transparent 9%),
+    radial-gradient(circle at 45% 65%,#a65c2a 0 9%,transparent 10%),
+    radial-gradient(circle at 68% 35%,#673016 0 8%,transparent 9%),
+    radial-gradient(circle at 80% 65%,#8d4b22 0 9%,transparent 10%),
+    linear-gradient(120deg,#a85d2a,#602b13);
+    border:5px solid #3c1e10;
+    box-shadow:inset 0 7px 10px #0008;
+}
+
+.fulLabel{
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    color:white;
+    background:#8b2b17;
+    padding:7px 20px;
+    border-radius:7px;
+    font-weight:bold;
+    z-index:3;
+}
+
+/* الزبون */
+.customer{
+    position:absolute;
+    z-index:12;
+    top:480px;
+    left:50%;
+    width:120px;
+    height:210px;
+    animation:customerArrive 1s ease;
+}
+
+.head{
+    width:67px;
+    height:67px;
+    background:#c9855a;
+    border-radius:50%;
+    margin:auto;
+    border:4px solid #70432d;
+    position:relative;
+}
+
+.hair{
+    position:absolute;
+    top:-8px;
+    left:2px;
+    width:59px;
+    height:27px;
+    background:#241b17;
+    border-radius:50% 50% 20% 20%;
+}
+
+.body{
+    width:82px;
+    height:105px;
+    background:#17648a;
+    border-radius:25px 25px 8px 8px;
+    margin:8px auto;
+    border:4px solid #0e3e55;
+}
+
+.legs{
+    display:flex;
+    justify-content:center;
+    gap:13px;
+}
+
+.leg{
+    width:21px;
+    height:50px;
+    background:#242424;
+    border-radius:8px;
+}
+
+@keyframes customerArrive{
+    from{
+        transform:translateX(-120px);
+        opacity:0;
+    }
+    to{
+        transform:translateX(0);
+        opacity:1;
+    }
+}
+
+/* الطلب */
+.order{
+    position:absolute;
+    z-index:30;
+    top:390px;
+    left:35px;
+    width:330px;
+    background:white;
+    border-radius:15px;
+    padding:18px;
+    box-shadow:0 10px 25px #0009;
+    border:4px solid #333;
+}
+
+.order h3{
+    margin:0 0 10px;
+    color:#8d2818;
+    font-size:21px;
+}
+
+#orderText{
+    line-height:1.8;
+    font-weight:bold;
+    color:#333;
+}
+
+.progress{
+    height:12px;
+    background:#ddd;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:12px;
+}
+
+#timeBar{
+    height:100%;
+    width:100%;
+    background:#31a852;
+    transition:.3s;
+}
+
+/* منطقة التحضير */
+.assembly{
+    position:absolute;
+    z-index:15;
+    top:750px;
+    left:50%;
+    transform:translateX(-50%);
+    width:550px;
+    height:280px;
+    background:linear-gradient(#eeeeee,#d3d3d3);
+    border:7px solid #555;
+    border-radius:20px;
+    box-shadow:0 12px 30px #0009;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+}
+
+.assembly h2{
+    margin:4px;
+    color:#3b2b21;
+}
+
+/* الساندوتش */
+.sandwich{
+    width:400px;
+    height:120px;
+    position:relative;
+    cursor:pointer;
+}
+
+.breadHalf{
+    position:absolute;
+    width:53%;
+    height:90px;
+    background:linear-gradient(#f0c37b,#c98235);
+    border:5px solid #965821;
+    box-shadow:inset 0 8px 8px #fff5;
+    transition:.5s;
+}
+
+.leftBread{
+    left:0;
+    border-radius:50% 15% 15% 50%;
+}
+
+.rightBread{
+    right:0;
+    border-radius:15% 50% 50% 15%;
+}
+
+.open .leftBread{
+    transform:translateX(-45px) rotate(-8deg);
+}
+
+.open .rightBread{
+    transform:translateX(45px) rotate(8deg);
+}
+
+.fill{
+    position:absolute;
+    left:18%;
+    top:22px;
+    width:64%;
+    height:65px;
+    border-radius:50%;
+    background:linear-gradient(#934b20,#55240e);
+    opacity:0;
+    transition:.4s;
+}
+
+.open .fill{
+    opacity:1;
+}
+
+/* الكونتر */
+.ingredients{
+    position:absolute;
+    top:1050px;
+    left:0;
+    right:0;
+    height:200px;
+    background:linear-gradient(#704a31,#432c20);
+    border-top:12px solid #2d2119;
+    box-shadow:0 -10px 20px #0008;
+    z-index:5;
+}
+
+.counterTop{
+    position:absolute;
+    top:0;
+    width:100%;
+    height:22px;
+    background:linear-gradient(#ddd,#999);
+    border-bottom:4px solid #555;
+}
+
+/* المكونات */
+.items{
+    position:absolute;
+    top:35px;
+    left:2%;
+    right:2%;
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.item{
+    width:105px;
+    height:120px;
+    background:linear-gradient(#fff,#dedede);
+    border-radius:12px;
+    border:3px solid #555;
+    box-shadow:0 7px 13px #0008;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.item:hover{
+    transform:translateY(-8px) scale(1.03);
+}
+
+.item span{
+    font-size:14px;
+    font-weight:bold;
+    color:#222;
+    margin-top:8px;
+}
+
+.foodIcon{
+    width:55px;
+    height:55px;
+    position:relative;
+}
+
+/* فول */
+.fulIcon{
+    width:60px;
+    height:45px;
+    background:
+    radial-gradient(circle at 25% 40%,#8d481f 0 8%,transparent 9%),
+    radial-gradient(circle at 50% 65%,#b76a30 0 9%,transparent 10%),
+    radial-gradient(circle at 75% 35%,#713416 0 8%,transparent 9%),
+    linear-gradient(#a85b28,#60280f);
+    border-radius:50%;
+    border:4px solid #45200f;
+    box-shadow:inset 0 7px 8px #fff3;
+}
+
+/* فلافل */
+.falafel{
+    border-radius:50%;
+    background:
+    radial-gradient(circle at 30% 30%,#d6a951 0 8%,transparent 9%),
+    radial-gradient(circle at 65% 55%,#8b581f 0 9%,transparent 10%),
+    radial-gradient(circle at 40% 75%,#e3bd67 0 8%,transparent 9%),
+    #8d5b20;
+    border:4px solid #5e3917;
+}
+
+/* طحينة */
+.tahini{
+    background:linear-gradient(#f4e4b7,#d7b875);
+    border-radius:50% 50% 15px 15px;
+    border:4px solid #a67b39;
+}
+
+/* مخلل */
+.pickles{
+    background:
+    repeating-linear-gradient(
+        90deg,
+        #789b25 0 9px,
+        #a9c83e 10px 16px
+    );
+    border-radius:15px;
+    border:4px solid #46651b;
+}
+
+/* طماطم */
+.tomato{
+    background:#d92b1f;
+    border-radius:50%;
+    border:4px solid #8d160f;
+}
+
+/* بطاطس */
+.potato{
+    background:
+    repeating-linear-gradient(
+        90deg,
+        #f5d16d 0 8px,
+        #d99f35 9px 13px
+    );
+    border-radius:8px;
+    transform:rotate(-4deg);
+}
+
+/* مشروب */
+.drink{
+    width:32px;
+    height:62px;
+    background:linear-gradient(90deg,#8ee7ff,#126a9a,#a6efff);
+    border-radius:6px 6px 9px 9px;
+    border:3px solid #17455b;
+}
+
+/* زر التسليم */
+.serve{
+    position:absolute;
+    z-index:40;
+    top:965px;
+    left:50%;
+    transform:translateX(-50%);
+    background:linear-gradient(#e83d27,#9e170c);
+    color:white;
+    border:0;
+    padding:15px 42px;
+    border-radius:12px;
+    font-size:19px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 7px 15px #0008;
+    transition:.2s;
+}
+
+.serve:hover{
+    transform:translateX(-50%) scale(1.05);
+}
+
+/* الرسالة */
+.message{
+    position:fixed;
+    z-index:100;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#111e;
+    color:white;
+    padding:25px 45px;
+    border-radius:18px;
+    font-size:24px;
+    font-weight:bold;
+    text-align:center;
+    display:none;
+    border:2px solid #fff4;
+    box-shadow:0 15px 40px #000;
+}
+
+/* الموبايل */
+@media(max-width:800px){
+
+    .game{
+        min-height:1450px;
+    }
+
+    .sign{
+        font-size:20px;
+        padding:10px 25px;
+    }
+
+    .hud{
+        top:90px;
+        right:10px;
+        max-width:95%;
+        font-size:12px;
+    }
+
+    .kitchenWindow{
+        top:390px;
+        right:15px;
+        width:320px;
+        height:270px;
+    }
+
+    .fulPot{
+        width:220px;
+        left:40px;
+    }
+
+    .order{
+        top:390px;
+        left:15px;
+        width:300px;
+    }
+
+    .customer{
+        top:600px;
+        left:50%;
+    }
+
+    .assembly{
+        top:850px;
+        width:92%;
+        height:270px;
+    }
+
+    .sandwich{
+        width:90%;
+    }
+
+    .serve{
+        top:1135px;
+    }
+
+    .ingredients{
+        top:1220px;
+        height:230px;
+    }
+
+    .item{
+        width:78px;
+        height:85px;
+    }
+
+    .foodIcon{
+        width:42px;
+        height:42px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+    <div class="wall"></div>
+
+    <div class="sign">
+        فول البلد
+    </div>
+
+    <div class="hud">
+
+        <div class="hudBox">
+            💰 <span id="money">100</span>
+        </div>
+
+        <div class="hudBox">
+            ⭐ المستوى <span id="level">1</span>
+        </div>
+
+        <div class="hudBox">
+            XP <span id="xp">0</span>
+        </div>
+
+        <div class="hudBox">
+            ⏱️ <span id="timer">45</span>
+        </div>
+
+    </div>
+
+    <!-- المطبخ -->
+
+    <div class="kitchenWindow">
+
+        <div class="kitchenInside">
+
+            <div class="hood"></div>
+
+            <div class="fulPot">
+
+                <div class="fulLabel">
+                    فــــــول
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- الزبون -->
+
+    <div class="customer">
+
+        <div class="head">
+            <div class="hair"></div>
+        </div>
+
+        <div class="body"></div>
+
+        <div class="legs">
+            <div class="leg"></div>
+            <div class="leg"></div>
+        </div>
+
+    </div>
+
+    <!-- الطلب -->
+
+    <div class="order">
+
+        <h3>
+            🧑 طلب الزبون
+        </h3>
+
+        <div id="orderText">
+            فول + طحينة + مخلل
+        </div>
+
+        <div class="progress">
+            <div id="timeBar"></div>
+        </div>
+
+    </div>
+
+    <!-- تحضير الساندوتش -->
+
+    <div class="assembly">
+
+        <h2>
+            تحضير الطلب
+        </h2>
+
+        <div
+            class="sandwich"
+            id="sandwich"
+        >
+
+            <div class="breadHalf leftBread"></div>
+
+            <div class="breadHalf rightBread"></div>
+
+            <div class="fill"></div>
+
+        </div>
+
+        <small>
+            اضغط على العيش لفتحه ثم اختر المكونات
+        </small>
+
+    </div>
+
+    <!-- زر التسليم -->
+
+    <button
+        class="serve"
+        onclick="serveOrder()"
+    >
+        🧾 تسليم الطلب
+    </button>
+
+    <!-- المكونات -->
+
+    <div class="ingredients">
+
+        <div class="counterTop"></div>
+
+        <div class="items">
+
+            <div
+                class="item"
+                onclick="addIngredient('فول')"
+            >
+                <div class="foodIcon fulIcon"></div>
+                <span>فول</span>
+            </div>
+
+            <div
+                class="item"
+                onclick="addIngredient('فلافل')"
+            >
+                <div class="foodIcon falafel"></div>
+                <span>فلافل</span>
+            </div>
+
+            <div
+                class="item"
+                onclick="addIngredient('طحينة')"
+            >
+                <div class="foodIcon tahini"></div>
+                <span>طحينة</span>
+            </div>
+
+            <div
+                class="item"
+                onclick="addIngredient('مخلل')"
+            >
+                <div class="foodIcon pickles"></div>
+                <span>مخلل</span>
+            </div>
+
+            <div
+                class="item"
+                onclick="addIngredient('طماطم')"
+            >
+                <div class="foodIcon tomato"></div>
+                <span>طماطم</span>
+            </div>
+
+            <div
+                class="item"
+                onclick="addIngredient('بطاطس')"
+            >
+                <div class="foodIcon potato"></div>
+                <span>بطاطس</span>
+            </div>
+
+            <div
+                class="item"
+                onclick="addIngredient('مشروب')"
+            >
+                <div class="foodIcon drink"></div>
+                <span>مشروب</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div
+        class="message"
+        id="message">
+    </div>
+
+</div>
+
+<script>
+
+let money = 100;
+let xp = 0;
+let level = 1;
+
+let time = 45;
+let maxTime = 45;
+
+let order = [];
+let ingredients = [];
+
+
+/* الطلبات */
+
+const orders = [
+
+    ["فول","طحينة","مخلل"],
+
+    ["فول","طماطم","مخلل"],
+
+    ["فلافل","طحينة","مخلل"],
+
+    ["فول","بطاطس","طحينة"],
+
+    ["فلافل","بطاطس","مشروب"],
+
+    ["فول","فلافل","طحينة","مخلل"],
+
+    ["فول","طماطم","بطاطس","مشروب"]
+
+];
+
+
+/* طلب جديد */
+
+function newOrder(){
+
+    order =
+        orders[
+            Math.floor(
+                Math.random()*orders.length
+            )
+        ];
+
+    ingredients = [];
+
+    document.getElementById(
+        "orderText"
+    ).innerHTML =
+        order.join(" + ");
+
+    time =
+        Math.max(
+            25,
+            45-(level-1)*3
+        );
+
+    maxTime = time;
+
+    document
+        .getElementById("sandwich")
+        .classList
+        .remove("open");
+
+    updateTimer();
+}
+
+
+/* تحديث العداد */
+
+function updateTimer(){
+
+    document.getElementById(
+        "timer"
+    ).innerText = time;
+
+    let percentage =
+        (time/maxTime)*100;
+
+    document.getElementById(
+        "timeBar"
+    ).style.width =
+        percentage+"%";
+
+    if(percentage < 30){
+
+        document.getElementById(
+            "timeBar"
+        ).style.background =
+            "#d9281c";
+
+    }else{
+
+        document.getElementById(
+            "timeBar"
+        ).style.background =
+            "#31a852";
+
+    }
+}
+
+
+/* الوقت */
+
+setInterval(function(){
+
+    if(time > 0){
+
+        time--;
+
+        updateTimer();
+
+    }else{
+
+        showMessage(
+            "😡 الزبون زهق ومشي!"
+        );
+
+        setTimeout(
+            function(){
+                newOrder();
+            },
+            1500
+        );
+    }
+
+},1000);
+
+
+/* فتح العيش */
+
+document
+.getElementById("sandwich")
+.addEventListener(
+    "click",
+    function(){
+
+        this.classList.add("open");
+
+    }
+);
+
+
+/* إضافة مكون */
+
+function addIngredient(item){
+
+    if(
+        !document
+        .getElementById("sandwich")
+        .classList
+        .contains("open")
+    ){
+
+        showMessage(
+            "🫓 افتح العيش الأول!"
+        );
+
+        return;
+    }
+
+    if(
+        !ingredients.includes(item)
+    ){
+
+        ingredients.push(item);
+
+        showMessage(
+            "تم إضافة "+item+" ✅"
+        );
+
+    }else{
+
+        showMessage(
+            "المكون موجود بالفعل"
+        );
+    }
+}
+
+
+/* تسليم الطلب */
+
+function serveOrder(){
+
+    if(time <= 0){
+
+        showMessage(
+            "الزبون مشي!"
+        );
+
+        return;
+    }
+
+    let correct =
+        order.every(
+            x => ingredients.includes(x)
+        )
+        &&
+        ingredients.length === order.length;
+
+    if(correct){
+
+        let reward =
+            20 + level*5;
+
+        money += reward;
+
+        xp += 10;
+
+        if(xp >= 50){
+
+            xp = 0;
+
+            level++;
+
+            showMessage(
+                "🔥 ممتاز!\nوصلت للمستوى "
+                + level
+            );
+
+        }else{
+
+            showMessage(
+                "👏 طلب ممتاز!\n+ "
+                + reward
+                + " جنيه افتراضي"
+            );
+        }
+
+        updateHUD();
+
+        setTimeout(
+            function(){
+                newOrder();
+            },
+            1500
+        );
+
+    }else{
+
+        showMessage(
+            "❌ الطلب ناقص أو فيه مكونات زيادة!"
+        );
+    }
+}
+
+
+/* تحديث البيانات */
+
+function updateHUD(){
+
+    document.getElementById(
+        "money"
+    ).innerText =
+        money;
+
+    document.getElementById(
+        "xp"
+    ).innerText =
+        xp;
+
+    document.getElementById(
+        "level"
+    ).innerText =
+        level;
+}
+
+
+/* الرسائل */
+
+function showMessage(text){
+
+    let box =
+        document.getElementById(
+            "message"
+        );
+
+    box.innerText = text;
+
+    box.style.display =
+        "block";
+
+    setTimeout(
+        function(){
+
+            box.style.display =
+                "none";
+
+        },
+        1300
+    );
+}
+
+
+/* بدء اللعبة */
+
+newOrder();
+
+updateHUD();
+
+</script>
+
+</body>
+</html>
